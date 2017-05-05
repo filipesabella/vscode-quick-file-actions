@@ -32,6 +32,13 @@ function removeFile(): void {
     (_, newPath) => fileOperations.remove(newPath));
 }
 
+function moveFile(): void {
+  doFileAction(
+    'File or directory to move the current file to',
+    'File or directory to move the current file to, relative to the workspace',
+    (relativeCurrentPath: string, newPath: string) => fileOperations.move(relativeCurrentPath, newPath));
+}
+
 function doFileAction(placeHolder: string, prompt: string, fn: (relativeCurrentPath: string, newPath: string) => Promise<void>): void {
   currentEditorPath().map(relativeCurrentPath =>
     window
@@ -86,4 +93,4 @@ async function showConfirmationDialog(message: string, action: () => Promise<voi
   return clickedButton === button ? action() : Promise.resolve();
 }
 
-export { newFile, removeFile };
+export { newFile, moveFile, removeFile };
