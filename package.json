@@ -18,6 +18,26 @@
   ],
   "main": "./out/src/main/extension",
   "contributes": {
+    "configuration": {
+      "title": "Quick-file-actions configuration",
+      "properties": {
+        "quick-file-actions.moveToTrash": {
+          "type": "boolean",
+          "default": true,
+          "description": "Controls whether the delete action moves the file/directory to the trash bin or permanently deletes it."
+        },
+        "quick-file-actions.confirmOnDelete": {
+          "type": "boolean",
+          "default": true,
+          "description": "Controls whether to show a confirmation dialog when deleting files."
+        },
+        "quick-file-actions.confirmOnReplace": {
+          "type": "boolean",
+          "default": true,
+          "description": "When the target file already exist when copying, creating, or moving, controls whether a confirmation dialog should be shown."
+        }
+      }
+    },
     "commands": [{
         "command": "extension.quick-file-actions.new",
         "title": "Quick File Actions: New File"
