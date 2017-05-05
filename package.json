@@ -1,0 +1,35 @@
+{
+  "name": "vscode-quick-file-actions",
+  "displayName": "vscode-quick-file-actions",
+  "description": "Quickly create, copy, delete, and move files",
+  "version": "0.0.1",
+  "publisher": "filipesabella",
+  "engines": {
+    "vscode": "^1.11.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/src/main/extension",
+  "contributes": {},
+  "scripts": {
+    "vscode:prepublish": "tsc -p ./",
+    "compile": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "./node_modules/mocha/bin/mocha --compilers ts:ts-node/register src/test/**/*.test.ts -w"
+  },
+  "dependencies": {
+    "fs-extra": "^3",
+    "trash": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^3",
+    "@types/mocha": "^2.2.32",
+    "@types/node": "^6.0.40",
+    "mocha": "^3.3.0",
+    "mock-fs": "^4.3.0",
+    "ts-node": "^3.0.2",
+    "typescript": "^2.0.3",
+    "vscode": "^1.0.0"
+  }
+}
