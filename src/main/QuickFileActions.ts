@@ -39,6 +39,13 @@ function moveFile(): void {
     (relativeCurrentPath: string, newPath: string) => fileOperations.move(relativeCurrentPath, newPath));
 }
 
+function copyFile(): void {
+  doFileAction(
+    'File or directory to copy the current file to',
+    'File or directory to copy the current file to, relative to the workspace',
+    (relativeCurrentPath: string, newPath: string) => fileOperations.copy(relativeCurrentPath, newPath));
+}
+
 function doFileAction(placeHolder: string, prompt: string, fn: (relativeCurrentPath: string, newPath: string) => Promise<void>): void {
   currentEditorPath().map(relativeCurrentPath =>
     window
@@ -93,4 +100,4 @@ async function showConfirmationDialog(message: string, action: () => Promise<voi
   return clickedButton === button ? action() : Promise.resolve();
 }
 
-export { newFile, moveFile, removeFile };
+export { newFile, moveFile, copyFile, removeFile };
