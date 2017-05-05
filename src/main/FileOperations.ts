@@ -67,7 +67,6 @@ class FileOperations {
     }
   }
 
-
   private absolutise(relativePath: string): string {
     return path.resolve(this.root, relativePath);
   }
