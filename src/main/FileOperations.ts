@@ -33,6 +33,17 @@ class FileOperations {
         .then(() => this.openDocument(newPath)));
   }
 
+  copy(originalPath: string, newPath: string): Promise<void> {
+    // if the user is copying the file to a directory, append the original file name
+    // to the path
+    newPath = newPath.endsWith(path.sep) ? newPath + path.basename(originalPath) : newPath;
+
+    return this.checkingDestination(originalPath, newPath, (newPath) =>
+      fsExtra
+        .copy(this.absolutise(originalPath), newPath)
+        .then(() => this.openDocument(newPath)));
+  }
+
   remove(relativePathToRemove: string): Promise<void> {
     const pathToRemove = this.absolutise(relativePathToRemove);
     if (fsExtra.existsSync(pathToRemove)) {
