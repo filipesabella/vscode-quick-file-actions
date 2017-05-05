@@ -10,8 +10,32 @@
   "categories": [
     "Other"
   ],
+  "activationEvents": [
+    "onCommand:extension.quick-file-actions.new",
+    "onCommand:extension.quick-file-actions.move",
+    "onCommand:extension.quick-file-actions.copy",
+    "onCommand:extension.quick-file-actions.delete"
+  ],
   "main": "./out/src/main/extension",
-  "contributes": {},
+  "contributes": {
+    "commands": [{
+        "command": "extension.quick-file-actions.new",
+        "title": "Quick File Actions: New File"
+      },
+      {
+        "command": "extension.quick-file-actions.move",
+        "title": "Quick File Actions: Move File"
+      },
+      {
+        "command": "extension.quick-file-actions.copy",
+        "title": "Quick File Actions: Copy File"
+      },
+      {
+        "command": "extension.quick-file-actions.delete",
+        "title": "Quick File Actions: Delete File"
+      }
+    ]
+  },
   "scripts": {
     "vscode:prepublish": "tsc -p ./",
     "compile": "tsc -watch -p ./",
