@@ -34,6 +34,23 @@
         "command": "extension.quick-file-actions.delete",
         "title": "Quick File Actions: Delete File"
       }
+    ],
+    "keybindings": [{
+        "command": "extension.quick-file-actions.new",
+        "key": "ctrl+alt+f n"
+      },
+      {
+        "command": "extension.quick-file-actions.move",
+        "key": "ctrl+alt+f m"
+      },
+      {
+        "command": "extension.quick-file-actions.copy",
+        "key": "ctrl+alt+f c"
+      },
+      {
+        "command": "extension.quick-file-actions.delete",
+        "key": "ctrl+alt+f d"
+      }
     ]
   },
   "scripts": {
