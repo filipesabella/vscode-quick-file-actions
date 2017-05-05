@@ -22,6 +22,30 @@ class FileOperations {
     }
   }
 
+  remove(relativePathToRemove: string): Promise<void> {
+    const pathToRemove = this.absolutise(relativePathToRemove);
+    if (fsExtra.existsSync(pathToRemove)) {
+      return fsExtra.lstat(pathToRemove)
+        .then(stats => {
+          const isDirectory = stats.isDirectory();
+
+          const moveToTrash = this.getConfiguration('quick-file-actions.moveToTrash', true);
+
+          const message = moveToTrash ? 'move ' + relativePathToRemove + ' to the trash bin' : 'permanently delete ' + pathToRemove;
+          const deleteFn = moveToTrash ? trash : fsExtra.remove;
+
+          return this.confirming(
+            'quick-file-actions.confirmOnDelete',
+            'Are you sure you want to ' + message + '?',
+            () => deleteFn(pathToRemove),
+            isDirectory); // always ask for confirmation when deleting directories
+        });
+    } else {
+      return Promise.reject('Path to delete does not exist');
+    }
+  }
+
+
   private absolutise(relativePath: string): string {
     return path.resolve(this.root, relativePath);
   }

@@ -69,4 +69,50 @@ describe('FileOperations', () => {
       assert.equal(openDocumentCalled, false);
     });
   });
+
+  describe('#remove', () => {
+    describe('when it is not needed to confirm', () => {
+      it('removes the root', async () => {
+        await fileOperations.remove('aaa');
+        assert.equal(fs.existsSync('project/aaa'), false);
+      });
+
+      it('removes a in subdir', async () => {
+        await fileOperations.remove('ddd/fff/ggg');
+        assert.equal(fs.existsSync('project/ddd/fff/ggg'), false);
+      });
+
+      describe('and the user is deleting a directory, it requires confirmation anyway', () => {
+        it('removes a non-empty subdir when confirming', async () => {
+          confirm = true;
+          await fileOperations.remove('ddd/fff/');
+          assert.equal(fsExtra.pathExistsSync('project/ddd/'), true);
+          assert.equal(fsExtra.pathExistsSync('project/ddd/fff'), false);
+        });
+
+        it('does not remove a non-empty subdir when not confirming', async () => {
+          confirm = false;
+          await fileOperations.remove('ddd/fff/');
+          assert.equal(fsExtra.pathExistsSync('project/ddd/'), true);
+          assert.equal(fsExtra.pathExistsSync('project/ddd/fff'), true);
+        });
+      });
+    });
+
+    describe('when it is needed to confirm', () => {
+      it('removes on the root when confirming', async () => {
+        configs['quick-file-actions.confirmOnDelete'] = true;
+        confirm = true;
+        await fileOperations.remove('aaa');
+        assert.equal(fs.existsSync('project/aaa'), false);
+      });
+
+      it('does not remove on the root when not confirming', async () => {
+        configs['quick-file-actions.confirmOnDelete'] = true;
+        confirm = false;
+        await fileOperations.remove('aaa');
+        assert.equal(fs.existsSync('project/aaa'), true);
+      });
+    });
+  });
 });
