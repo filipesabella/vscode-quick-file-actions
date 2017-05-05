@@ -22,6 +22,17 @@ class FileOperations {
     }
   }
 
+  move(originalPath: string, newPath: string): Promise<void> {
+    // if the user is moving the file to a directory, append the original file name
+    // to the path
+    newPath = newPath.endsWith(path.sep) ? newPath + path.basename(originalPath) : newPath;
+
+    return this.checkingDestination(originalPath, newPath, (newPath) =>
+      fsExtra
+        .move(this.absolutise(originalPath), newPath, { overwrite: true })
+        .then(() => this.openDocument(newPath)));
+  }
+
   remove(relativePathToRemove: string): Promise<void> {
     const pathToRemove = this.absolutise(relativePathToRemove);
     if (fsExtra.existsSync(pathToRemove)) {

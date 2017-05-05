@@ -115,4 +115,94 @@ describe('FileOperations', () => {
       });
     });
   });
+
+  describe('#move', () => {
+    it('moves on the root', async () => {
+      await fileOperations.move('aaa', 'zzz');
+      assert.equal(fs.existsSync('project/aaa'), false);
+      assert.equal(fs.existsSync('project/zzz'), true);
+      assert.equal(fs.readFileSync('project/zzz'), 'aaa');
+      assert.equal(openDocumentCalled, true);
+    });
+
+    it('moves to existing subdir specifying the file', async () => {
+      await fileOperations.move('aaa', 'ccc/zzz');
+      assert.equal(fs.existsSync('project/aaa'), false);
+      assert.equal(fs.existsSync('project/ccc/zzz'), true);
+      assert.equal(fs.readFileSync('project/ccc/zzz'), 'aaa');
+      assert.equal(openDocumentCalled, true);
+    });
+
+    it('moves to existing subdir without specifying the file', async () => {
+      await fileOperations.move('aaa', 'ccc/');
+      assert.equal(fs.existsSync('project/aaa'), false);
+      assert.equal(fs.existsSync('project/ccc/aaa'), true);
+      assert.equal(fs.readFileSync('project/ccc/aaa'), 'aaa');
+      assert.equal(openDocumentCalled, true);
+    });
+
+    it('moves to non-existing subdir specifying the file', async () => {
+      await fileOperations.move('aaa', 'jjj/kkk/lll');
+      assert.equal(fs.existsSync('project/aaa'), false);
+      assert.equal(fs.existsSync('project/jjj/kkk/lll'), true);
+      assert.equal(fs.readFileSync('project/jjj/kkk/lll'), 'aaa');
+      assert.equal(openDocumentCalled, true);
+    });
+
+    it('moves to non-existing subdir without specifying the file', async () => {
+      await fileOperations.move('aaa', 'jjj/kkk/');
+      assert.equal(fs.existsSync('project/aaa'), false);
+      assert.equal(fs.existsSync('project/jjj/kkk/aaa'), true);
+      assert.equal(fs.readFileSync('project/jjj/kkk/aaa'), 'aaa');
+      assert.equal(openDocumentCalled, true);
+    });
+
+    it('moves to existing subsubdir without specifying the file', async () => {
+      await fileOperations.move('aaa', 'ddd/fff/');
+      assert.equal(fs.existsSync('project/aaa'), false);
+      assert.equal(fs.existsSync('project/ddd/fff/aaa'), true);
+      assert.equal(fs.readFileSync('project/ddd/fff/aaa'), 'aaa');
+      assert.equal(openDocumentCalled, true);
+    });
+
+    describe('when overriding', () => {
+      describe('and it is not needed to confirm', () => {
+        it('overrides', async () => {
+          await fileOperations.move('ddd/fff/ggg', 'aaa');
+          assert.equal(fs.existsSync('project/ddd/fff/ggg'), false);
+          assert.equal(fs.readFileSync('project/aaa'), 'ggg');
+          assert.equal(openDocumentCalled, true);
+        });
+      });
+
+      describe('and it is needed to confirm', () => {
+        describe('and the user does not confirm', () => {
+          it('does nothing', async () => {
+            configs['quick-file-actions.confirmOnReplace'] = true;
+            confirm = false;
+
+            await fileOperations.move('aaa', 'bbb');
+            assert.equal(fs.existsSync('project/aaa'), true);
+            assert.equal(fs.existsSync('project/bbb'), true);
+            assert.equal(fs.readFileSync('project/aaa'), 'aaa');
+            assert.equal(fs.readFileSync('project/bbb'), 'bbb');
+            assert.equal(openDocumentCalled, false);
+          });
+        });
+
+        describe('and the user confirms', () => {
+          it('overrides', async () => {
+            configs['quick-file-actions.confirmOnReplace'] = true;
+            confirm = true;
+
+            await fileOperations.move('aaa', 'bbb');
+            assert.equal(fs.existsSync('project/aaa'), false);
+            assert.equal(fs.existsSync('project/bbb'), true);
+            assert.equal(fs.readFileSync('project/bbb'), 'aaa');
+            assert.equal(openDocumentCalled, true);
+          });
+        });
+      });
+    });
+  });
 });
