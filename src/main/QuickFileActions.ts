@@ -25,12 +25,47 @@ function newFile() {
     .then(ignoringEmptyInput(catchingError(newPath => fileOperations.create(newPath))));
 }
 
+function removeFile(): void {
+  doFileAction(
+    'File or directory to be deleted',
+    'File or directory to be deleted, relative to the workspace',
+    (_, newPath) => fileOperations.remove(newPath));
+}
+
+function doFileAction(placeHolder: string, prompt: string, fn: (relativeCurrentPath: string, newPath: string) => Promise<void>): void {
+  currentEditorPath().map(relativeCurrentPath =>
+    window
+      .showInputBox({
+        placeHolder: placeHolder,
+        prompt: prompt,
+        value: relativeCurrentPath,
+        validateInput: validatedInput
+      })
+      .then(ignoringEmptyInput(catchingError(newPath => fn(relativeCurrentPath, newPath)))));
+}
+
 function catchingError(fn: (s: string) => Promise<void>) {
   return (value: string) => fn(value).catch(e => window.showErrorMessage(e));
 }
 
 function ignoringEmptyInput(fn: (s: string) => Promise<void>) {
   return (value: string) => value === null || value === undefined ? Promise.resolve() : fn(value);
+}
+
+function currentEditorPath(): { map: (fn: (relativeCurrentPath: string) => void) => void } {
+  // wannabe Option
+  if (window.activeTextEditor && window.activeTextEditor.document.fileName) {
+    return {
+      map: (fn: (relativeCurrentPath: string) => void) => {
+        const currentPath = window.activeTextEditor.document.fileName;
+        fn(workspace.asRelativePath(currentPath));
+      }
+    };
+  } else {
+    return {
+      map: (fn: (relativeCurrentPath: string) => void) => { }
+    };
+  }
 }
 
 function validatedInput(s: string): string | null {
@@ -51,4 +86,4 @@ async function showConfirmationDialog(message: string, action: () => Promise<voi
   return clickedButton === button ? action() : Promise.resolve();
 }
 
-export { newFile };
+export { newFile, removeFile };
