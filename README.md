@@ -1,7 +1,6 @@
 # vscode-quick-file-actions
 
 Quickly create, copy, delete, and move files.
-Because life's too short to use the mouse.
 
 ## Features
 
