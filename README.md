@@ -40,11 +40,11 @@ If the target file already exists, prompts the user to confirm the replacement.
 
 ## Extension Settings
 
-This extension contributes the following settings:
-
-* `quick-file-actions.moveToTrash`: controls whether the delete action moves the file/directory to the trash bin or permanently deletes it. Defaults to true.
-* `quick-file-actions.confirmOnDelete`: controls whether to show a confirmation dialog when deleting files. Defaults to true.
-* `quick-file-actions.confirmOnReplace`: when the target file already exist when copying, creating, or moving, controls whether a confirmation dialog should be shown. Defaults to true.
+|Name|Setting|Default value|
+|-|-|-|
+|`quick-file-actions.moveToTrash`|Controls whether the delete action moves the file/directory to the trash bin or permanently deletes it.|`true`|
+|`quick-file-actions.confirmOnDelete`|Controls whether to show a confirmation dialog when deleting files.|`true`|
+|`quick-file-actions.confirmOnReplace`|Controls whether a confirmation dialog should be shown if the target file already exist when copying, creating, or moving.|`true`|
 
 ### 1.0.0
 
