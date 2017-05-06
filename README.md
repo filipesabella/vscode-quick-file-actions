@@ -2,6 +2,8 @@
 
 Quickly create, copy, delete, and move files.
 
+![In action](image.gif)
+
 ## Features
 
 ### Create
@@ -32,11 +34,6 @@ moves and renames it to the input value.
 If the target file already exists, prompts the user to confirm the replacement.
 
 `ctrl+alt+f m`
-
-<!--
-// TODO add image
-![image](images/path.png)
--->
 
 ## Extension Settings
 
