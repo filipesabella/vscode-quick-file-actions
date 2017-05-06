@@ -34,7 +34,7 @@
         "quick-file-actions.confirmOnReplace": {
           "type": "boolean",
           "default": true,
-          "description": "When the target file already exist when copying, creating, or moving, controls whether a confirmation dialog should be shown."
+          "description": "Controls whether a confirmation dialog should be shown if the target file already exist when copying, creating, or moving."
         }
       }
     },
