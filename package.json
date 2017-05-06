@@ -1,9 +1,18 @@
 {
   "name": "vscode-quick-file-actions",
-  "displayName": "vscode-quick-file-actions",
+  "displayName": "Quick File Actions",
   "description": "Quickly create, copy, delete, and move files",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "publisher": "filipesabella",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/filipesabella/vscode-quick-file-actions/issues"
+  },
+  "homepage": "https://github.com/filipesabella/vscode-quick-file-actions",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/filipesabella/vscode-quick-file-actions.git"
+  },
   "engines": {
     "vscode": "^1.11.0"
   },
