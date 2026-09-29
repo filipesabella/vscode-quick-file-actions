@@ -6,6 +6,7 @@ import {
 } from 'vscode';
 import * as fileOperations from './FileOperations';
 import type { Dependencies } from './FileOperations';
+import { showPathInput } from './PathInput';
 import { vscodeFileSystem } from './VscodeFileSystem';
 
 type Context = {
@@ -49,11 +50,10 @@ async function newFile(): Promise<void> {
   const currentDir = context.currentFile && path.dirname(context.currentFile);
   const value = currentDir && currentDir !== '.' ? currentDir + path.sep : '';
 
-  const newPath = await window.showInputBox({
+  const newPath = await showPathInput(context.deps.root, {
     placeHolder: 'New file name',
     prompt: 'New file name, relative to the workspace',
     value,
-    validateInput: validatedInput,
   });
 
   await runAction(
@@ -101,11 +101,10 @@ async function doFileAction(
   const currentFile = context?.currentFile;
   if (!context || currentFile === undefined) return;
 
-  const newPath = await window.showInputBox({
+  const newPath = await showPathInput(context.deps.root, {
     placeHolder,
     prompt,
     value: currentFile,
-    validateInput: validatedInput,
   });
 
   await runAction(
@@ -125,10 +124,6 @@ async function runAction(
   } catch (e) {
     window.showErrorMessage(e instanceof Error ? e.message : String(e));
   }
-}
-
-function validatedInput(s: string): string | null {
-  return s.trim() === '' ? 'Enter a value' : null;
 }
 
 function getConfiguration(key: string, defaultValue: boolean): boolean {

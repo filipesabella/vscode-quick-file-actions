@@ -2,6 +2,7 @@ import {
   commands,
   ExtensionContext,
 } from 'vscode';
+import { completePathInput } from './PathInput';
 import {
   copyFile,
   moveFile,
@@ -21,5 +22,11 @@ export function activate(context: ExtensionContext) {
   );
   context.subscriptions.push(
     commands.registerCommand('extension.quick-file-actions.copy', copyFile),
+  );
+  context.subscriptions.push(
+    commands.registerCommand(
+      'extension.quick-file-actions.complete',
+      completePathInput,
+    ),
   );
 }

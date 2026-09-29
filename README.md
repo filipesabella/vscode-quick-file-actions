@@ -6,6 +6,10 @@ Quickly create, copy, delete, and move files.
 
 ## Features
 
+In every prompt, `tab` completes directory and file names, like a shell:
+a unique match is completed, and several matches are completed up to their
+common prefix and listed below the input.
+
 ### Create
 Prompts the user to create a new file in the same directory as the currently opened file.
 If no file is open, defaults to the workspace root.

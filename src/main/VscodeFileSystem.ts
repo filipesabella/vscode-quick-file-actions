@@ -5,6 +5,7 @@ import {
   workspace,
   WorkspaceEdit,
 } from 'vscode';
+import type { ReadDirectory } from './Completion';
 import type { FileSystem } from './FileOperations';
 
 // Creating and moving go through a WorkspaceEdit, so they can be undone and
@@ -54,6 +55,12 @@ const vscodeFileSystem: FileSystem = {
   },
 };
 
+const readDirectory: ReadDirectory = async path =>
+  (await workspace.fs.readDirectory(Uri.file(path))).map(([name, type]) => ({
+    name,
+    isDirectory: (type & FileType.Directory) !== 0,
+  }));
+
 // applyEdit reports failure by resolving to false rather than rejecting
 async function applyEdit(
   description: string,
@@ -66,4 +73,4 @@ async function applyEdit(
   }
 }
 
-export { vscodeFileSystem };
+export { readDirectory, vscodeFileSystem };

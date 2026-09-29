@@ -57,6 +57,10 @@
       {
         "command": "extension.quick-file-actions.delete",
         "title": "Quick File Actions: Delete File"
+      },
+      {
+        "command": "extension.quick-file-actions.complete",
+        "title": "Quick File Actions: Complete Path"
       }
     ],
     "keybindings": [
@@ -75,8 +79,21 @@
       {
         "command": "extension.quick-file-actions.delete",
         "key": "ctrl+alt+f d"
+      },
+      {
+        "command": "extension.quick-file-actions.complete",
+        "key": "tab",
+        "when": "inQuickOpen && quickFileActions.pathInput"
       }
-    ]
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "extension.quick-file-actions.complete",
+          "when": "false"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "tsc -p tsconfig.build.json",
