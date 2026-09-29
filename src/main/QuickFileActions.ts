@@ -1,72 +1,106 @@
-import { ExtensionContext, commands, window, workspace } from 'vscode';
-import { FileOperations } from './FileOperations';
 import * as path from 'path';
+import {
+  commands,
+  ExtensionContext,
+  window,
+  workspace,
+} from 'vscode';
+import { FileOperations } from './FileOperations';
 
 const fileOperations = new FileOperations(
   workspace.workspaceFolders?.[0]?.uri.fsPath ?? '',
   openDocument,
   getConfiguration,
-  showConfirmationDialog);
+  showConfirmationDialog,
+);
 
 function newFile() {
-  const currentEditorPath = window.activeTextEditor ? path.dirname(window.activeTextEditor.document.fileName) : '';
+  const currentEditorPath = window.activeTextEditor
+    ? path.dirname(window.activeTextEditor.document.fileName)
+    : '';
   const currentPath = currentEditorPath === '.' ? '' : currentEditorPath;
   let relativeCurrentPath = workspace.asRelativePath(currentPath);
   // when the current path is at the root of the workspace, ^ this function returns the input :/
-  relativeCurrentPath = relativeCurrentPath === currentPath ? '' : relativeCurrentPath;
+  relativeCurrentPath = relativeCurrentPath === currentPath
+    ? ''
+    : relativeCurrentPath;
 
   window
     .showInputBox({
       placeHolder: 'New file name',
       prompt: 'New file name, relative to the workspace',
-      value: relativeCurrentPath !== '' ? relativeCurrentPath + path.sep : relativeCurrentPath,
-      validateInput: validatedInput
+      value: relativeCurrentPath !== ''
+        ? relativeCurrentPath + path.sep
+        : relativeCurrentPath,
+      validateInput: validatedInput,
     })
-    .then(ignoringEmptyInput(catchingError(newPath => fileOperations.create(newPath))));
+    .then(
+      ignoringEmptyInput(
+        catchingError(newPath => fileOperations.create(newPath)),
+      ),
+    );
 }
 
 function removeFile(): void {
   doFileAction(
     'File or directory to be deleted',
     'File or directory to be deleted, relative to the workspace',
-    (_, newPath) => fileOperations.remove(newPath));
+    (_, newPath) => fileOperations.remove(newPath),
+  );
 }
 
 function moveFile(): void {
   doFileAction(
     'File or directory to move the current file to',
     'File or directory to move the current file to, relative to the workspace',
-    (relativeCurrentPath: string, newPath: string) => fileOperations.move(relativeCurrentPath, newPath));
+    (relativeCurrentPath: string, newPath: string) =>
+      fileOperations.move(relativeCurrentPath, newPath),
+  );
 }
 
 function copyFile(): void {
   doFileAction(
     'File or directory to copy the current file to',
     'File or directory to copy the current file to, relative to the workspace',
-    (relativeCurrentPath: string, newPath: string) => fileOperations.copy(relativeCurrentPath, newPath));
+    (relativeCurrentPath: string, newPath: string) =>
+      fileOperations.copy(relativeCurrentPath, newPath),
+  );
 }
 
-function doFileAction(placeHolder: string, prompt: string, fn: (relativeCurrentPath: string, newPath: string) => Promise<void>): void {
+function doFileAction(
+  placeHolder: string,
+  prompt: string,
+  fn: (relativeCurrentPath: string, newPath: string) => Promise<void>,
+): void {
   currentEditorPath().map(relativeCurrentPath =>
     window
       .showInputBox({
         placeHolder: placeHolder,
         prompt: prompt,
         value: relativeCurrentPath,
-        validateInput: validatedInput
+        validateInput: validatedInput,
       })
-      .then(ignoringEmptyInput(catchingError(newPath => fn(relativeCurrentPath, newPath)))));
+      .then(ignoringEmptyInput(catchingError(newPath =>
+        fn(relativeCurrentPath, newPath)
+      )))
+  );
 }
 
 function catchingError(fn: (s: string) => Promise<void>) {
-  return (value: string) => fn(value).catch(e => { window.showErrorMessage(String(e)); });
+  return (value: string) =>
+    fn(value).catch(e => {
+      window.showErrorMessage(String(e));
+    });
 }
 
 function ignoringEmptyInput(fn: (s: string) => Promise<void>) {
-  return (value: string | undefined) => value === null || value === undefined ? Promise.resolve() : fn(value);
+  return (value: string | undefined) =>
+    value === null || value === undefined ? Promise.resolve() : fn(value);
 }
 
-function currentEditorPath(): { map: (fn: (relativeCurrentPath: string) => void) => void } {
+function currentEditorPath(): {
+  map: (fn: (relativeCurrentPath: string) => void) => void,
+} {
   // wannabe Option
   const editor = window.activeTextEditor;
   if (editor && editor.document.fileName) {
@@ -74,11 +108,11 @@ function currentEditorPath(): { map: (fn: (relativeCurrentPath: string) => void)
       map: (fn: (relativeCurrentPath: string) => void) => {
         const currentPath = editor.document.fileName;
         fn(workspace.asRelativePath(currentPath));
-      }
+      },
     };
   } else {
     return {
-      map: (fn: (relativeCurrentPath: string) => void) => { }
+      map: (fn: (relativeCurrentPath: string) => void) => {},
     };
   }
 }
@@ -95,10 +129,15 @@ function openDocument(file: string): void {
   workspace.openTextDocument(file).then(window.showTextDocument);
 }
 
-async function showConfirmationDialog(message: string, action: () => Promise<void>): Promise<void> {
+async function showConfirmationDialog(
+  message: string,
+  action: () => Promise<void>,
+): Promise<void> {
   const button = 'Confirm';
-  const clickedButton = await window.showWarningMessage(message, { modal: true }, button);
+  const clickedButton = await window.showWarningMessage(message, {
+    modal: true,
+  }, button);
   return clickedButton === button ? action() : Promise.resolve();
 }
 
-export { newFile, moveFile, copyFile, removeFile };
+export { copyFile, moveFile, newFile, removeFile };

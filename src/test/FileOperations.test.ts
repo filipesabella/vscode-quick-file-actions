@@ -1,6 +1,6 @@
 import * as assert from 'assert';
-import * as fsExtra from 'fs-extra';
 import * as fs from 'fs';
+import * as fsExtra from 'fs-extra';
 import { FileOperations } from '../main/FileOperations';
 const mockFs = require('mock-fs');
 
@@ -27,22 +27,34 @@ beforeEach(() => {
       'ddd': {
         'eee': 'eee',
         'fff': {
-          'ggg': 'ggg'
-        }
-      }
-    }
+          'ggg': 'ggg',
+        },
+      },
+    },
   });
 });
 afterEach(mockFs.restore);
 
 describe('FileOperations', () => {
-  const openDocument = (file: string): void => { openDocumentCalled = true; };
-  const getConfiguration = (key: string, defaultValue: boolean): boolean => { return configs[key]; };
-  const showConfirmationDialog = (message: string, action: () => Promise<void>): Promise<void> => {
+  const openDocument = (file: string): void => {
+    openDocumentCalled = true;
+  };
+  const getConfiguration = (key: string, defaultValue: boolean): boolean => {
+    return configs[key];
+  };
+  const showConfirmationDialog = (
+    message: string,
+    action: () => Promise<void>,
+  ): Promise<void> => {
     return confirm ? action() : Promise.resolve();
   };
 
-  const fileOperations = new FileOperations('project/', openDocument, getConfiguration, showConfirmationDialog);
+  const fileOperations = new FileOperations(
+    'project/',
+    openDocument,
+    getConfiguration,
+    showConfirmationDialog,
+  );
 
   describe('#create', () => {
     it('creates on the root', async () => {

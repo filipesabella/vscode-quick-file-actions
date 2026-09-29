@@ -87,7 +87,9 @@
   "scripts": {
     "vscode:prepublish": "tsc -p ./",
     "compile": "tsc -watch -p ./",
-    "test": "tsc -p ./ && mocha 'out/src/test/**/*.test.js'"
+    "test": "tsc -p ./ && mocha 'out/src/test/**/*.test.js'",
+    "fmt": "dprint fmt",
+    "check": "tsc -p ./ --noEmit && dprint check"
   },
   "dependencies": {
     "fs-extra": "^11",
@@ -98,6 +100,7 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "^26.6.3",
     "@types/vscode": "^1.138.0",
+    "dprint": "^0.57.4",
     "mocha": "^12.0.2",
     "mock-fs": "^5.5.0",
     "typescript": "^7.0.2"
