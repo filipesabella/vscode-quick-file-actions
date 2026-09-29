@@ -42,7 +42,7 @@ beforeEach(() => {
 afterEach(mockFs.restore);
 
 describe('FileOperations', () => {
-  const openDocument = (file: string): void => {
+  const openDocument = async (file: string): Promise<void> => {
     openDocumentCalled = true;
   };
   const getConfiguration = (key: string, defaultValue: boolean): boolean => {

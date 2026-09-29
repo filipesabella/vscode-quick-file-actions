@@ -19,12 +19,6 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onCommand:extension.quick-file-actions.new",
-    "onCommand:extension.quick-file-actions.move",
-    "onCommand:extension.quick-file-actions.copy",
-    "onCommand:extension.quick-file-actions.delete"
-  ],
   "main": "./out/src/main/extension",
   "contributes": {
     "configuration": {

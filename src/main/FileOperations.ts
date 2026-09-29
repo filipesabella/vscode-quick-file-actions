@@ -1,11 +1,10 @@
-import * as fs from 'fs';
 import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 
 class FileOperations {
   constructor(
     private readonly root: string,
-    private readonly openDocument: (file: string) => void,
+    private readonly openDocument: (file: string) => Promise<void>,
     private readonly getConfiguration: (
       key: string,
       defaultValue: boolean,
@@ -16,74 +15,67 @@ class FileOperations {
     ) => Promise<void>,
   ) {}
 
-  create(newPath: string): Promise<void> {
-    if (newPath.endsWith(path.sep)) {
-      return fsExtra.mkdirp(this.absolutise(newPath));
+  async create(newPath: string): Promise<void> {
+    if (isDirectoryPath(newPath)) {
+      await fsExtra.mkdirp(this.absolutise(newPath));
     } else {
-      return this.checkingDestination('', newPath, newPath =>
-        fsExtra
-          .mkdirp(path.dirname(newPath))
-          .then(() =>
-            fsExtra
-              .writeFile(newPath, '')
-              .then(() => this.openDocument(newPath))
-          ));
+      await this.checkingDestination('', newPath, async newPath => {
+        await fsExtra.mkdirp(path.dirname(newPath));
+        await fsExtra.writeFile(newPath, '');
+        await this.openDocument(newPath);
+      });
     }
   }
 
   move(originalPath: string, newPath: string): Promise<void> {
-    // if the user is moving the file to a directory, append the original file name
-    // to the path
-    newPath = newPath.endsWith(path.sep)
-      ? newPath + path.basename(originalPath)
-      : newPath;
-
-    return this.checkingDestination(originalPath, newPath, newPath =>
-      fsExtra
-        .move(this.absolutise(originalPath), newPath, { overwrite: true })
-        .then(() => this.openDocument(newPath)));
+    const destination = inDirectory(originalPath, newPath);
+    return this.checkingDestination(
+      originalPath,
+      destination,
+      async newPath => {
+        await fsExtra.move(this.absolutise(originalPath), newPath, {
+          overwrite: true,
+        });
+        await this.openDocument(newPath);
+      },
+    );
   }
 
   copy(originalPath: string, newPath: string): Promise<void> {
-    // if the user is copying the file to a directory, append the original file name
-    // to the path
-    newPath = newPath.endsWith(path.sep)
-      ? newPath + path.basename(originalPath)
-      : newPath;
-
-    return this.checkingDestination(originalPath, newPath, newPath =>
-      fsExtra
-        .copy(this.absolutise(originalPath), newPath)
-        .then(() => this.openDocument(newPath)));
+    const destination = inDirectory(originalPath, newPath);
+    return this.checkingDestination(
+      originalPath,
+      destination,
+      async newPath => {
+        await fsExtra.copy(this.absolutise(originalPath), newPath);
+        await this.openDocument(newPath);
+      },
+    );
   }
 
-  remove(relativePathToRemove: string): Promise<void> {
+  async remove(relativePathToRemove: string): Promise<void> {
     const pathToRemove = this.absolutise(relativePathToRemove);
-    if (fsExtra.existsSync(pathToRemove)) {
-      return fsExtra.lstat(pathToRemove)
-        .then(stats => {
-          const isDirectory = stats.isDirectory();
-
-          const moveToTrash = this.getConfiguration(
-            'quick-file-actions.moveToTrash',
-            true,
-          );
-
-          const message = moveToTrash
-            ? 'move ' + relativePathToRemove + ' to the trash bin'
-            : 'permanently delete ' + pathToRemove;
-          const deleteFn = moveToTrash ? moveToTrashBin : fsExtra.remove;
-
-          return this.confirming(
-            'quick-file-actions.confirmOnDelete',
-            'Are you sure you want to ' + message + '?',
-            () => deleteFn(pathToRemove),
-            isDirectory,
-          ); // always ask for confirmation when deleting directories
-        });
-    } else {
-      return Promise.reject('Path to delete does not exist');
+    if (!fsExtra.existsSync(pathToRemove)) {
+      throw new Error('Path to delete does not exist');
     }
+
+    const stats = await fsExtra.lstat(pathToRemove);
+    const moveToTrash = this.getConfiguration(
+      'quick-file-actions.moveToTrash',
+      true,
+    );
+
+    const message = moveToTrash
+      ? 'move ' + relativePathToRemove + ' to the trash bin'
+      : 'permanently delete ' + pathToRemove;
+    const deleteFn = moveToTrash ? moveToTrashBin : fsExtra.remove;
+
+    await this.confirming(
+      'quick-file-actions.confirmOnDelete',
+      'Are you sure you want to ' + message + '?',
+      () => deleteFn(pathToRemove),
+      stats.isDirectory(), // always ask for confirmation when deleting directories
+    );
   }
 
   private absolutise(relativePath: string): string {
@@ -97,16 +89,14 @@ class FileOperations {
   ): Promise<void> {
     if (originalPath === newPath) return Promise.resolve(); // ignore
 
-    let absoluteNewPath = this.absolutise(newPath);
-    if (fsExtra.existsSync(absoluteNewPath)) {
-      return this.confirming(
+    const absoluteNewPath = this.absolutise(newPath);
+    return fsExtra.existsSync(absoluteNewPath)
+      ? this.confirming(
         'quick-file-actions.confirmOnReplace',
         'Destination path already exists, override?',
         () => action(absoluteNewPath),
-      );
-    } else {
-      return action(absoluteNewPath);
-    }
+      )
+      : action(absoluteNewPath);
   }
 
   private confirming(
@@ -115,12 +105,22 @@ class FileOperations {
     action: () => Promise<void>,
     alwaysConfirm: boolean = false,
   ): Promise<void> {
-    if (alwaysConfirm || this.getConfiguration(configKey, true) === true) {
-      return this.showConfirmationDialog(message, action);
-    } else {
-      return action();
-    }
+    return alwaysConfirm || this.getConfiguration(configKey, true)
+      ? this.showConfirmationDialog(message, action)
+      : action();
   }
+}
+
+// users may type '/' regardless of platform
+function isDirectoryPath(p: string): boolean {
+  return p.endsWith('/') || p.endsWith(path.sep);
+}
+
+// if the destination is a directory, keep the original file name
+function inDirectory(originalPath: string, newPath: string): string {
+  return isDirectoryPath(newPath)
+    ? newPath + path.basename(originalPath)
+    : newPath;
 }
 
 // trash is ESM-only, so it has to be loaded with a dynamic import
