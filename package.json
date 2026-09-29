@@ -83,7 +83,9 @@
     "compile": "tsc -watch -p tsconfig.build.json",
     "test": "vitest run --dir src",
     "fmt": "dprint fmt",
-    "check": "tsc -p ./ --noEmit && dprint check"
+    "check": "tsc -p ./ --noEmit && dprint check",
+    "package": "vsce package --no-yarn",
+    "publish": "vsce publish --no-yarn"
   },
   "dependencies": {
     "fs-extra": "^11",
@@ -94,6 +96,7 @@
     "@types/mock-fs": "^4.13.4",
     "@types/node": "^26.6.3",
     "@types/vscode": "^1.138.0",
+    "@vscode/vsce": "^4.0.0",
     "dprint": "^0.57.4",
     "mock-fs": "^5.5.0",
     "typescript": "^7.0.2",

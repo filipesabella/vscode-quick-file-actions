@@ -1,0 +1,10 @@
+.vscode/**
+.yarn/**
+src/**
+out/**/*.map
+image.gif
+dprint.json
+tsconfig*.json
+yarn.lock
+.yarnrc.yml
+.gitignore
