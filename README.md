@@ -23,7 +23,9 @@ If the target file already exists, prompts the user to confirm the replacement.
 
 ### Delete
 Prompts the user to delete a path, files or directories.
-By default moves the deleted files to the trash bin.
+By default moves the deleted files to the trash bin. Where there is no trash bin, e.g. in some remote workspaces, offers to delete permanently instead.
+
+New files and moves can be undone like any other edit, and moving a file lets language extensions update imports, just like the Explorer does.
 
 `ctrl+alt+f d`
 

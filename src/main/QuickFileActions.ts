@@ -4,10 +4,12 @@ import {
   window,
   workspace,
 } from 'vscode';
-import { FileOperations } from './FileOperations';
+import * as fileOperations from './FileOperations';
+import type { Dependencies } from './FileOperations';
+import { vscodeFileSystem } from './VscodeFileSystem';
 
 type Context = {
-  fileOperations: FileOperations,
+  deps: Dependencies,
   // the active file, relative to root when inside it, absolute otherwise
   currentFile: string | undefined,
 };
@@ -24,12 +26,13 @@ function currentContext(): Context | undefined {
   if (root === undefined) return undefined;
 
   return {
-    fileOperations: new FileOperations(
+    deps: {
       root,
+      fileSystem: vscodeFileSystem,
       openDocument,
       getConfiguration,
       showConfirmationDialog,
-    ),
+    },
     currentFile: fileUri && (fileFolder
       ? path.relative(root, fileUri.fsPath)
       : fileUri.fsPath),
@@ -53,14 +56,17 @@ async function newFile(): Promise<void> {
     validateInput: validatedInput,
   });
 
-  await runAction(newPath, newPath => context.fileOperations.create(newPath));
+  await runAction(
+    newPath,
+    newPath => fileOperations.create(context.deps, newPath),
+  );
 }
 
 function removeFile(): Promise<void> {
   return doFileAction(
     'File or directory to be deleted',
     'File or directory to be deleted, relative to the workspace',
-    (fileOperations, _, newPath) => fileOperations.remove(newPath),
+    (deps, _, newPath) => fileOperations.remove(deps, newPath),
   );
 }
 
@@ -68,8 +74,8 @@ function moveFile(): Promise<void> {
   return doFileAction(
     'File or directory to move the current file to',
     'File or directory to move the current file to, relative to the workspace',
-    (fileOperations, currentFile, newPath) =>
-      fileOperations.move(currentFile, newPath),
+    (deps, currentFile, newPath) =>
+      fileOperations.move(deps, currentFile, newPath),
   );
 }
 
@@ -77,8 +83,8 @@ function copyFile(): Promise<void> {
   return doFileAction(
     'File or directory to copy the current file to',
     'File or directory to copy the current file to, relative to the workspace',
-    (fileOperations, currentFile, newPath) =>
-      fileOperations.copy(currentFile, newPath),
+    (deps, currentFile, newPath) =>
+      fileOperations.copy(deps, currentFile, newPath),
   );
 }
 
@@ -86,7 +92,7 @@ async function doFileAction(
   placeHolder: string,
   prompt: string,
   fn: (
-    fileOperations: FileOperations,
+    deps: Dependencies,
     currentFile: string,
     newPath: string,
   ) => Promise<void>,
@@ -104,7 +110,7 @@ async function doFileAction(
 
   await runAction(
     newPath,
-    newPath => fn(context.fileOperations, currentFile, newPath),
+    newPath => fn(context.deps, currentFile, newPath),
   );
 }
 

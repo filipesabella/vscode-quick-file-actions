@@ -1,114 +1,143 @@
-import * as fsExtra from 'fs-extra';
 import * as path from 'path';
+import type { FileSystem } from './FileSystem';
 
-class FileOperations {
-  constructor(
-    private readonly root: string,
-    private readonly openDocument: (file: string) => Promise<void>,
-    private readonly getConfiguration: (
-      key: string,
-      defaultValue: boolean,
-    ) => boolean,
-    private readonly showConfirmationDialog: (
-      message: string,
-      action: () => Promise<void>,
-    ) => Promise<void>,
-  ) {}
-
-  async create(newPath: string): Promise<void> {
-    if (isDirectoryPath(newPath)) {
-      await fsExtra.mkdirp(this.absolutise(newPath));
-    } else {
-      await this.checkingDestination('', newPath, async newPath => {
-        await fsExtra.mkdirp(path.dirname(newPath));
-        await fsExtra.writeFile(newPath, '');
-        await this.openDocument(newPath);
-      });
-    }
-  }
-
-  move(originalPath: string, newPath: string): Promise<void> {
-    const destination = inDirectory(originalPath, newPath);
-    return this.checkingDestination(
-      originalPath,
-      destination,
-      async newPath => {
-        await fsExtra.move(this.absolutise(originalPath), newPath, {
-          overwrite: true,
-        });
-        await this.openDocument(newPath);
-      },
-    );
-  }
-
-  copy(originalPath: string, newPath: string): Promise<void> {
-    const destination = inDirectory(originalPath, newPath);
-    return this.checkingDestination(
-      originalPath,
-      destination,
-      async newPath => {
-        await fsExtra.copy(this.absolutise(originalPath), newPath);
-        await this.openDocument(newPath);
-      },
-    );
-  }
-
-  async remove(relativePathToRemove: string): Promise<void> {
-    const pathToRemove = this.absolutise(relativePathToRemove);
-    if (!fsExtra.existsSync(pathToRemove)) {
-      throw new Error('Path to delete does not exist');
-    }
-
-    const stats = await fsExtra.lstat(pathToRemove);
-    const moveToTrash = this.getConfiguration(
-      'quick-file-actions.moveToTrash',
-      true,
-    );
-
-    const message = moveToTrash
-      ? 'move ' + relativePathToRemove + ' to the trash bin'
-      : 'permanently delete ' + pathToRemove;
-    const deleteFn = moveToTrash ? moveToTrashBin : fsExtra.remove;
-
-    await this.confirming(
-      'quick-file-actions.confirmOnDelete',
-      'Are you sure you want to ' + message + '?',
-      () => deleteFn(pathToRemove),
-      stats.isDirectory(), // always ask for confirmation when deleting directories
-    );
-  }
-
-  private absolutise(relativePath: string): string {
-    return path.resolve(this.root, relativePath);
-  }
-
-  private checkingDestination(
-    originalPath: string,
-    newPath: string,
-    action: (newPath: string) => Promise<void>,
-  ): Promise<void> {
-    if (originalPath === newPath) return Promise.resolve(); // ignore
-
-    const absoluteNewPath = this.absolutise(newPath);
-    return fsExtra.existsSync(absoluteNewPath)
-      ? this.confirming(
-        'quick-file-actions.confirmOnReplace',
-        'Destination path already exists, override?',
-        () => action(absoluteNewPath),
-      )
-      : action(absoluteNewPath);
-  }
-
-  private confirming(
-    configKey: string,
+type Dependencies = {
+  root: string,
+  fileSystem: FileSystem,
+  openDocument: (file: string) => Promise<void>,
+  getConfiguration: (key: string, defaultValue: boolean) => boolean,
+  showConfirmationDialog: (
     message: string,
     action: () => Promise<void>,
-    alwaysConfirm: boolean = false,
-  ): Promise<void> {
-    return alwaysConfirm || this.getConfiguration(configKey, true)
-      ? this.showConfirmationDialog(message, action)
-      : action();
+  ) => Promise<void>,
+};
+
+async function create(deps: Dependencies, newPath: string): Promise<void> {
+  if (isDirectoryPath(newPath)) {
+    await deps.fileSystem.createDirectory(absolutise(deps, newPath));
+  } else {
+    await checkingDestination(deps, '', newPath, async newPath => {
+      await deps.fileSystem.createFile(newPath);
+      await deps.openDocument(newPath);
+    });
   }
+}
+
+function move(
+  deps: Dependencies,
+  originalPath: string,
+  newPath: string,
+): Promise<void> {
+  return checkingDestination(
+    deps,
+    originalPath,
+    inDirectory(originalPath, newPath),
+    async newPath => {
+      await deps.fileSystem.move(absolutise(deps, originalPath), newPath);
+      await deps.openDocument(newPath);
+    },
+  );
+}
+
+function copy(
+  deps: Dependencies,
+  originalPath: string,
+  newPath: string,
+): Promise<void> {
+  return checkingDestination(
+    deps,
+    originalPath,
+    inDirectory(originalPath, newPath),
+    async newPath => {
+      await deps.fileSystem.copy(absolutise(deps, originalPath), newPath);
+      await deps.openDocument(newPath);
+    },
+  );
+}
+
+async function remove(
+  deps: Dependencies,
+  relativePathToRemove: string,
+): Promise<void> {
+  const pathToRemove = absolutise(deps, relativePathToRemove);
+  if (!(await deps.fileSystem.exists(pathToRemove))) {
+    throw new Error('Path to delete does not exist');
+  }
+
+  const isDirectory = await deps.fileSystem.isDirectory(pathToRemove);
+  const moveToTrash = deps.getConfiguration(
+    'quick-file-actions.moveToTrash',
+    true,
+  );
+
+  const message = moveToTrash
+    ? 'move ' + relativePathToRemove + ' to the trash bin'
+    : 'permanently delete ' + pathToRemove;
+
+  await confirming(
+    deps,
+    'quick-file-actions.confirmOnDelete',
+    'Are you sure you want to ' + message + '?',
+    () =>
+      moveToTrash
+        ? trashing(deps, relativePathToRemove, pathToRemove)
+        : deps.fileSystem.remove(pathToRemove, false),
+    isDirectory, // always ask for confirmation when deleting directories
+  );
+}
+
+// not every file system has a trash bin, e.g. remote ones, so offer to
+// delete permanently instead
+async function trashing(
+  deps: Dependencies,
+  relativePathToRemove: string,
+  pathToRemove: string,
+): Promise<void> {
+  try {
+    await deps.fileSystem.remove(pathToRemove, true);
+  } catch (e) {
+    await deps.showConfirmationDialog(
+      'Could not move ' + relativePathToRemove + ' to the trash bin ('
+        + (e instanceof Error ? e.message : String(e))
+        + '). Permanently delete it instead?',
+      () => deps.fileSystem.remove(pathToRemove, false),
+    );
+  }
+}
+
+function absolutise(deps: Dependencies, relativePath: string): string {
+  return path.resolve(deps.root, relativePath);
+}
+
+async function checkingDestination(
+  deps: Dependencies,
+  originalPath: string,
+  newPath: string,
+  action: (newPath: string) => Promise<void>,
+): Promise<void> {
+  if (originalPath === newPath) return; // ignore
+
+  const absoluteNewPath = absolutise(deps, newPath);
+  return (await deps.fileSystem.exists(absoluteNewPath))
+    ? confirming(
+      deps,
+      'quick-file-actions.confirmOnReplace',
+      'Destination path already exists, override?',
+      () => action(absoluteNewPath),
+    )
+    : action(absoluteNewPath);
+}
+
+function confirming(
+  deps: Dependencies,
+  configKey: string,
+  message: string,
+  action: () => Promise<void>,
+  alwaysConfirm: boolean = false,
+): Promise<void> {
+  return alwaysConfirm || deps.getConfiguration(configKey, true)
+    ? deps.showConfirmationDialog(message, action)
+    : action();
 }
 
 // users may type '/' regardless of platform
@@ -123,9 +152,5 @@ function inDirectory(originalPath: string, newPath: string): string {
     : newPath;
 }
 
-// trash is ESM-only, so it has to be loaded with a dynamic import
-function moveToTrashBin(pathToRemove: string): Promise<void> {
-  return import('trash').then(({ default: trash }) => trash(pathToRemove));
-}
-
-export { FileOperations };
+export { copy, create, move, remove };
+export type { Dependencies };

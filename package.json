@@ -87,18 +87,11 @@
     "package": "vsce package --no-yarn",
     "publish": "vsce publish --no-yarn"
   },
-  "dependencies": {
-    "fs-extra": "^11",
-    "trash": "^10.1.1"
-  },
   "devDependencies": {
-    "@types/fs-extra": "^11",
-    "@types/mock-fs": "^4.13.4",
     "@types/node": "^26.6.3",
     "@types/vscode": "^1.138.0",
     "@vscode/vsce": "^4.0.0",
     "dprint": "^0.57.4",
-    "mock-fs": "^5.5.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.1",
     "vitest": "^5.0.2"
