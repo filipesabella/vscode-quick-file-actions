@@ -2,7 +2,7 @@
   "name": "vscode-quick-file-actions",
   "displayName": "Quick File Actions",
   "description": "Quickly create, copy, delete, and move files",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "publisher": "filipesabella",
   "license": "MIT",
   "bugs": {
