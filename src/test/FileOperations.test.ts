@@ -1,8 +1,14 @@
 import * as assert from 'assert';
 import * as fs from 'fs';
 import * as fsExtra from 'fs-extra';
+import mockFs from 'mock-fs';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  it,
+} from 'vitest';
 import { FileOperations } from '../main/FileOperations';
-const mockFs = require('mock-fs');
 
 let configs: Record<string, boolean> = {};
 let confirm = false;

@@ -3,7 +3,7 @@
     "module": "nodenext",
     "target": "es2022",
     "lib": ["es2022"],
-    "types": ["node", "mocha"],
+    "types": ["node"],
     "rootDir": ".",
     "outDir": "out",
     "sourceMap": true
