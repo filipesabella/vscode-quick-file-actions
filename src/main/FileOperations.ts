@@ -1,5 +1,17 @@
 import * as path from 'path';
-import type { FileSystem } from './FileSystem';
+
+// The file system operations needed here, all on absolute paths.
+// Creating, moving and copying overwrite the destination and create any
+// missing parent directories.
+type FileSystem = {
+  exists: (path: string) => Promise<boolean>,
+  isDirectory: (path: string) => Promise<boolean>,
+  createDirectory: (path: string) => Promise<void>,
+  createFile: (path: string) => Promise<void>,
+  move: (from: string, to: string) => Promise<void>,
+  copy: (from: string, to: string) => Promise<void>,
+  remove: (path: string, useTrash: boolean) => Promise<void>,
+};
 
 type Dependencies = {
   root: string,
@@ -153,4 +165,4 @@ function inDirectory(originalPath: string, newPath: string): string {
 }
 
 export { copy, create, move, remove };
-export type { Dependencies };
+export type { Dependencies, FileSystem };

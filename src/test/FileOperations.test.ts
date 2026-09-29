@@ -9,7 +9,6 @@ import {
   it,
 } from 'vitest';
 import * as fileOperations from '../main/FileOperations';
-import type { FileSystem } from '../main/FileSystem';
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'quick-file-actions-'));
 const p = (relativePath: string): string => path.join(root, relativePath);
@@ -20,7 +19,7 @@ let openDocumentCalled = false;
 let trashAvailable = true;
 let trashed: string[] = [];
 
-const nodeFileSystem: FileSystem = {
+const nodeFileSystem: fileOperations.FileSystem = {
   exists: async path => fs.existsSync(path),
   isDirectory: async path => fs.statSync(path).isDirectory(),
   createDirectory: async path => {

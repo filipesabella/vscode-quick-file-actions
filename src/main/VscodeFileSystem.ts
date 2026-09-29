@@ -5,7 +5,7 @@ import {
   workspace,
   WorkspaceEdit,
 } from 'vscode';
-import type { FileSystem } from './FileSystem';
+import type { FileSystem } from './FileOperations';
 
 // Creating and moving go through a WorkspaceEdit, so they can be undone and
 // fire the same events as the Explorer, e.g. letting TypeScript update
