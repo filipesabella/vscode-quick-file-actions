@@ -1,7 +1,6 @@
 import * as fsExtra from 'fs-extra';
 import * as fs from 'fs';
 import * as path from 'path';
-const trash = require('trash');
 
 class FileOperations {
   constructor(
@@ -54,7 +53,7 @@ class FileOperations {
           const moveToTrash = this.getConfiguration('quick-file-actions.moveToTrash', true);
 
           const message = moveToTrash ? 'move ' + relativePathToRemove + ' to the trash bin' : 'permanently delete ' + pathToRemove;
-          const deleteFn = moveToTrash ? trash : fsExtra.remove;
+          const deleteFn = moveToTrash ? moveToTrashBin : fsExtra.remove;
 
           return this.confirming(
             'quick-file-actions.confirmOnDelete',
@@ -71,7 +70,7 @@ class FileOperations {
     return path.resolve(this.root, relativePath);
   }
 
-  private checkingDestination(originalPath: string, newPath, action: (newPath: string) => Promise<void>): Promise<void> {
+  private checkingDestination(originalPath: string, newPath: string, action: (newPath: string) => Promise<void>): Promise<void> {
     if (originalPath === newPath) return Promise.resolve(); // ignore
 
     let absoluteNewPath = this.absolutise(newPath);
@@ -89,6 +88,11 @@ class FileOperations {
       return action();
     }
   }
+}
+
+// trash is ESM-only, so it has to be loaded with a dynamic import
+function moveToTrashBin(pathToRemove: string): Promise<void> {
+  return import('trash').then(({ default: trash }) => trash(pathToRemove));
 }
 
 export { FileOperations };

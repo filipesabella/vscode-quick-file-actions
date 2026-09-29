@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import { FileOperations } from '../main/FileOperations';
 const mockFs = require('mock-fs');
 
-let configs = {};
+let configs: Record<string, boolean> = {};
 let confirm = false;
 let openDocumentCalled = false;
 let openDocumentCalledWith = '';

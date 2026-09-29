@@ -3,7 +3,7 @@ import { FileOperations } from './FileOperations';
 import * as path from 'path';
 
 const fileOperations = new FileOperations(
-  workspace.rootPath,
+  workspace.workspaceFolders?.[0]?.uri.fsPath ?? '',
   openDocument,
   getConfiguration,
   showConfirmationDialog);
@@ -59,19 +59,20 @@ function doFileAction(placeHolder: string, prompt: string, fn: (relativeCurrentP
 }
 
 function catchingError(fn: (s: string) => Promise<void>) {
-  return (value: string) => fn(value).catch(e => window.showErrorMessage(e));
+  return (value: string) => fn(value).catch(e => { window.showErrorMessage(String(e)); });
 }
 
 function ignoringEmptyInput(fn: (s: string) => Promise<void>) {
-  return (value: string) => value === null || value === undefined ? Promise.resolve() : fn(value);
+  return (value: string | undefined) => value === null || value === undefined ? Promise.resolve() : fn(value);
 }
 
 function currentEditorPath(): { map: (fn: (relativeCurrentPath: string) => void) => void } {
   // wannabe Option
-  if (window.activeTextEditor && window.activeTextEditor.document.fileName) {
+  const editor = window.activeTextEditor;
+  if (editor && editor.document.fileName) {
     return {
       map: (fn: (relativeCurrentPath: string) => void) => {
-        const currentPath = window.activeTextEditor.document.fileName;
+        const currentPath = editor.document.fileName;
         fn(workspace.asRelativePath(currentPath));
       }
     };
